@@ -20,26 +20,24 @@ jobs:
           cd /tmp
           flutter create -t app himmah_build
           cd himmah_build
-          # Remove default lib and pubspec
           rm -rf lib pubspec.yaml
-          # Copy your code
           cp -r $GITHUB_WORKSPACE/lib .
           cp $GITHUB_WORKSPACE/pubspec.yaml .
           cp -r $GITHUB_WORKSPACE/assets . 2>/dev/null || true
-          # Copy google-services.json
           cp $GITHUB_WORKSPACE/google-services.json android/app/ 2>/dev/null || true
 
-      - name: Add google-services plugin
-        working-directory: /tmp/himmah_build
+      - name: Setup Android project
         run: |
-          # Add plugin to build.gradle.kts
-          sed -i 's/id("org.jetbrains.kotlin.android")/id("org.jetbrains.kotlin.android")\n    id("com.google.gms.google-services")/' android/app/build.gradle.kts
-          # Add classpath
-          sed -i 's/dependencies {/dependencies {\n        classpath "com.google.gms:google-services:4.4.0"/' android/build.gradle.kts
+          cd /tmp/himmah_build
+          cp android/app/build.gradle.kts android/app/build.gradle.kts.bak
+          cat android/app/build.gradle.kts.bak | sed 's/id("org.jetbrains.kotlin.android")/id("org.jetbrains.kotlin.android")\n    id("com.google.gms.google-services")/' > android/app/build.gradle.kts
+          cp android/build.gradle.kts android/build.gradle.kts.bak
+          cat android/build.gradle.kts.bak | sed 's/dependencies {/dependencies {\n        classpath "com.google.gms:google-services:4.4.0"/' > android/build.gradle.kts
 
       - name: Build APK
-        working-directory: /tmp/himmah_build
-        run: flutter build apk --release
+        run: |
+          cd /tmp/himmah_build
+          flutter build apk --release
 
       - uses: actions/upload-artifact@v4
         with:
