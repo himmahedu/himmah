@@ -13,30 +13,33 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.22.0'
 
-      - name: Create new Flutter project
+      - name: Create fresh Flutter project
         run: |
           cd /tmp
-          flutter create -t app himmah_build
+          flutter create --platforms android himmah_build
           cd himmah_build
-          rm -rf lib pubspec.yaml
+          rm -rf lib pubspec.yaml assets
           cp -r $GITHUB_WORKSPACE/lib .
           cp $GITHUB_WORKSPACE/pubspec.yaml .
           cp -r $GITHUB_WORKSPACE/assets . 2>/dev/null || true
           cp $GITHUB_WORKSPACE/google-services.json android/app/ 2>/dev/null || true
 
-      - name: Setup Android project
+      - name: Add Google Services to build.gradle.kts
         run: |
-          cd /tmp/himmah_build
-          cp android/app/build.gradle.kts android/app/build.gradle.kts.bak
-          cat android/app/build.gradle.kts.bak | sed 's/id("org.jetbrains.kotlin.android")/id("org.jetbrains.kotlin.android")\n    id("com.google.gms.google-services")/' > android/app/build.gradle.kts
-          cp android/build.gradle.kts android/build.gradle.kts.bak
-          cat android/build.gradle.kts.bak | sed 's/dependencies {/dependencies {\n        classpath "com.google.gms:google-services:4.4.0"/' > android/build.gradle.kts
+          cd /tmp/himmah_build/android/app
+          cat build.gradle.kts | sed 's/id("org.jetbrains.kotlin.android")/id("org.jetbrains.kotlin.android")\n    id("com.google.gms.google-services")/' > tmp.kts && mv tmp.kts build.gradle.kts
+
+      - name: Add Google Services classpath to build.gradle.kts
+        run: |
+          cd /tmp/himmah_build/android
+          cat build.gradle.kts | sed 's/dependencies {/dependencies {\n        classpath("com.google.gms:google-services:4.4.0")/' > tmp.kts && mv tmp.kts build.gradle.kts
 
       - name: Build APK
         run: |
           cd /tmp/himmah_build
+          flutter pub get
           flutter build apk --release
 
       - uses: actions/upload-artifact@v4
