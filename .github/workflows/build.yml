@@ -38,11 +38,12 @@ jobs:
           find /tmp/himmah_build/android -name "build.gradle*" -exec ls -la {} \;
           cd /tmp/himmah_build/android/app
           if [ -f build.gradle.kts ]; then
-            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 35/' build.gradle.kts
+            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 35/g' build.gradle.kts
             sed -i 's/id("org.jetbrains.kotlin.android")/id("org.jetbrains.kotlin.android")\n    id("com.google.gms.google-services")/' build.gradle.kts
           fi
           if [ -f build.gradle ]; then
-            sed -i 's/compileSdkVersion 34/compileSdkVersion 35/' build.gradle
+            sed -i 's/compileSdkVersion 34/compileSdkVersion 35/g' build.gradle
+
           fi
 
       - name: Add Google Services classpath
